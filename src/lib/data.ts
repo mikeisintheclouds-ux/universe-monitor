@@ -1,6 +1,6 @@
 /**
  * Universe Monitor data plane
- * NASA NeoWs · EPIC · DONKI · ISS · Celestrak TLE
+ * CNEOS CAD/Sentry · NeoWs · EPIC · DONKI · ISS · Celestrak TLE
  */
 
 import type {
@@ -13,6 +13,7 @@ import type {
 } from "./types";
 import { planetStates } from "./astro";
 import { buildThreatBoard } from "./threat";
+import { fetchCadApproaches, fetchSentrySummary } from "./cneos";
 
 const NASA_KEY = process.env.NASA_API_KEY || "DEMO_KEY";
 
@@ -48,26 +49,7 @@ export async function fetchNeos(): Promise<NeoObject[]> {
       } satisfies NeoObject;
     });
   } catch {
-    return [
-      {
-        id: "demo-1",
-        name: "(2026 AB1)",
-        hazardous: false,
-        diameterKm: 0.12,
-        missKm: 4_200_000,
-        velocityKph: 42_000,
-        approachDate: todayIso(),
-      },
-      {
-        id: "demo-2",
-        name: "PHA Demo",
-        hazardous: true,
-        diameterKm: 0.28,
-        missKm: 7_100_000,
-        velocityKph: 58_000,
-        approachDate: todayIso(),
-      },
-    ];
+    return [];
   }
 }
 
@@ -131,13 +113,7 @@ export async function fetchIss(): Promise<IssState | null> {
       timestamp: d.timestamp,
     };
   } catch {
-    return {
-      latitude: 28.5,
-      longitude: -80.6,
-      altitudeKm: 420,
-      velocityKph: 27600,
-      timestamp: Date.now() / 1000,
-    };
+    return null;
   }
 }
 
@@ -226,6 +202,9 @@ export async function getUniverseSnapshot(): Promise<UniverseSnapshot> {
     fetchDonki(),
     fetchStarlink(),
   ]);
+  // CNEOS: one request at a time
+  const cad = await fetchCadApproaches({ days: 30, distMaxLd: 10, limit: 12 });
+  const sentry = await fetchSentrySummary(10);
   return {
     generatedAt: new Date().toISOString(),
     zoom: "solar",
@@ -236,7 +215,9 @@ export async function getUniverseSnapshot(): Promise<UniverseSnapshot> {
     epic,
     weather,
     starlink,
-    threats: buildThreatBoard(neos, weather),
+    cad,
+    sentry,
+    threats: buildThreatBoard(neos, weather, cad, sentry),
     loadedBy: "Universe Monitor",
   };
 }

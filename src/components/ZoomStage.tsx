@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { IssState, Observer, PlanetState, ZoomLevel } from "@/lib/types";
-import { alignmentLabel, alignmentScore } from "@/lib/astro";
+import { alignmentScore } from "@/lib/astro";
 import { EarthMap } from "@/components/EarthMap";
+import { Solar3D } from "@/components/Solar3D";
 
 const LEVELS: ZoomLevel[] = ["universe", "galaxy", "solar", "earth", "surface"];
 
@@ -32,7 +33,7 @@ export function ZoomStage({
       <div className="topbar">
         <div className="brand">
           <h1>Universe Monitor</h1>
-          <span className="sub">Cosmic ops · live sky · scale navigation</span>
+          <span className="sub">Space situational awareness · scale navigation</span>
         </div>
         <div className="zoom-rail">
           {LEVELS.map((z) => (
@@ -53,7 +54,7 @@ export function ZoomStage({
         <div className="canvas-wrap">
           {zoom === "universe" && <UniverseView />}
           {zoom === "galaxy" && <GalaxyView />}
-          {zoom === "solar" && <SolarView planets={planets} score={score} />}
+          {zoom === "solar" && <Solar3D planets={planets} />}
           {zoom === "earth" && <EarthMap iss={iss} observer={observer} />}
           {zoom === "surface" && <SurfaceView observer={observer} />}
         </div>
@@ -108,33 +109,6 @@ function GalaxyView() {
   );
 }
 
-function SolarView({ planets, score }: { planets: PlanetState[]; score: number }) {
-  const cx = 400;
-  const cy = 200;
-  return (
-    <svg width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
-      <circle cx={cx} cy={cy} r="14" fill="#fbbf24" />
-      <text x={cx} y={cy - 22} textAnchor="middle" fill="#fbbf24" fontSize="10">SUN</text>
-      {planets.map((p, i) => {
-        const r = 35 + i * 22;
-        const rad = (p.longitude * Math.PI) / 180;
-        const x = cx + r * Math.cos(rad);
-        const y = cy + r * Math.sin(rad) * 0.55;
-        return (
-          <g key={p.name}>
-            <ellipse cx={cx} cy={cy} rx={r} ry={r * 0.55} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-            <circle cx={x} cy={y} r={p.name === "Earth" ? 5 : 3.5} fill={p.color} />
-            <text x={x + 8} y={y + 3} fill={p.color} fontSize="9">{p.symbol}</text>
-          </g>
-        );
-      })}
-      <text x="400" y="380" textAnchor="middle" fill="#a78bfa" fontSize="11">
-        Alignment · {alignmentLabel(score)} · span {score.toFixed(0)}°
-      </text>
-    </svg>
-  );
-}
-
 function SurfaceView({ observer }: { observer: Observer }) {
   return (
     <div style={{ textAlign: "center", padding: "2rem" }}>
@@ -143,10 +117,10 @@ function SurfaceView({ observer }: { observer: Observer }) {
       </div>
       <div style={{ fontSize: "1.6rem", fontWeight: 700 }}>{observer.label}</div>
       <div style={{ color: "#7b8bb0", marginTop: "0.5rem", fontSize: "0.95rem" }}>
-        {observer.latitude.toFixed(4)}°N · {Math.abs(observer.longitude).toFixed(4)}°W
+        {observer.latitude.toFixed(4)}°, {observer.longitude.toFixed(4)}°
       </div>
       <div style={{ marginTop: "1.5rem", fontSize: "0.8rem", color: "#7b8bb0", maxWidth: 420, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
-        From observable universe → galactic arm → solar ecliptic → Earth orbit → this coordinate.
+        Observable universe → galactic arm → solar ecliptic → Earth orbit → this coordinate.
       </div>
       <a
         href={`https://www.google.com/maps/@${observer.latitude},${observer.longitude},12z`}
@@ -154,7 +128,7 @@ function SurfaceView({ observer }: { observer: Observer }) {
         rel="noreferrer"
         style={{ display: "inline-block", marginTop: "1.25rem", color: "#22d3ee", fontSize: "0.85rem" }}
       >
-        Open in Google Maps →
+        Open in maps →
       </a>
     </div>
   );

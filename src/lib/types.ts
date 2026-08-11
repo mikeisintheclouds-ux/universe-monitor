@@ -37,6 +37,28 @@ export interface Observer {
   label: string;
 }
 
+export interface EpicFrame {
+  image: string;
+  date: string;
+  caption: string;
+  url: string;
+  lat: number;
+  lon: number;
+}
+
+export interface SpaceWeatherEvent {
+  id: string;
+  type: string;
+  startTime: string;
+  note: string;
+}
+
+export interface StarlinkSummary {
+  catalogCount: number;
+  sampleNames: string[];
+  source: string;
+}
+
 export interface UniverseSnapshot {
   generatedAt: string;
   zoom: ZoomLevel;
@@ -44,6 +66,8 @@ export interface UniverseSnapshot {
   planets: PlanetState[];
   iss: IssState | null;
   observer: Observer;
-  apodTitle?: string;
-  apodUrl?: string;
+  epic: EpicFrame | null;
+  weather: SpaceWeatherEvent[];
+  starlink: StarlinkSummary;
+  loadedBy: string;
 }

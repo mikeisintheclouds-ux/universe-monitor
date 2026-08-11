@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { IssState, Observer, PlanetState, ZoomLevel } from "@/lib/types";
 import { alignmentLabel, alignmentScore } from "@/lib/astro";
+import { EarthMap } from "@/components/EarthMap";
 
 const LEVELS: ZoomLevel[] = ["universe", "galaxy", "solar", "earth", "surface"];
 
@@ -53,7 +54,7 @@ export function ZoomStage({
           {zoom === "universe" && <UniverseView />}
           {zoom === "galaxy" && <GalaxyView />}
           {zoom === "solar" && <SolarView planets={planets} score={score} />}
-          {zoom === "earth" && <EarthView iss={iss} observer={observer} />}
+          {zoom === "earth" && <EarthMap iss={iss} observer={observer} />}
           {zoom === "surface" && <SurfaceView observer={observer} />}
         </div>
       </div>
@@ -130,34 +131,6 @@ function SolarView({ planets, score }: { planets: PlanetState[]; score: number }
       <text x="400" y="380" textAnchor="middle" fill="#a78bfa" fontSize="11">
         Alignment · {alignmentLabel(score)} · span {score.toFixed(0)}°
       </text>
-    </svg>
-  );
-}
-
-function EarthView({ iss, observer }: { iss: IssState | null; observer: Observer }) {
-  const cx = 400;
-  const cy = 200;
-  const R = 110;
-  const project = (lat: number, lon: number) => ({
-    x: cx + (lon / 180) * R * 1.4,
-    y: cy - (lat / 90) * R * 0.9,
-  });
-  const obs = project(observer.latitude, observer.longitude);
-  const issP = iss ? project(iss.latitude, iss.longitude) : null;
-
-  return (
-    <svg width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid meet">
-      <circle cx={cx} cy={cy} r={R} fill="#0c1929" stroke="#22d3ee" strokeWidth="1.5" />
-      <ellipse cx={cx} cy={cy} rx={R} ry={R * 0.35} fill="none" stroke="rgba(34,211,238,0.2)" />
-      <circle cx={obs.x} cy={obs.y} r="5" fill="#34d399" />
-      <text x={obs.x + 10} y={obs.y + 4} fill="#34d399" fontSize="10">YOU · {observer.label}</text>
-      {issP && (
-        <>
-          <circle cx={issP.x} cy={issP.y} r="4" fill="#fbbf24" />
-          <text x={issP.x + 10} y={issP.y + 4} fill="#fbbf24" fontSize="10">ISS</text>
-        </>
-      )}
-      <text x="400" y="360" textAnchor="middle" fill="#7b8bb0" fontSize="11">Earth · observer lock · ISS track</text>
     </svg>
   );
 }

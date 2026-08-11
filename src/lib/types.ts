@@ -37,7 +37,6 @@ export interface Observer {
   label: string;
 }
 
-/** DSCOVR EPIC — real camera at Earth-Sun L1 */
 export interface EpicFrame {
   image: string;
   date: string;
@@ -62,11 +61,35 @@ export interface StarlinkSummary {
   issTle?: { name: string; line1: string; line2: string } | null;
 }
 
+export interface CadApproach {
+  des: string;
+  cd: string;
+  distAu: number;
+  distMinAu: number;
+  distLd: number;
+  vRelKms: number;
+  h: number;
+  orbitId: string;
+}
+
+export interface SentryObject {
+  des: string;
+  fullname: string;
+  ip: number;
+  psCum: number;
+  psMax: number;
+  tsMax: number;
+  diameterKm: number | null;
+  nImp: number;
+  range: string;
+  lastObs: string;
+}
+
 export type ThreatLevel = "CLEAR" | "WATCH" | "ELEVATED" | "SEVERE";
 
 export interface ThreatItem {
   id: string;
-  source: "NEO" | "DONKI" | "ISS" | "SYSTEM";
+  source: "CAD" | "SENTRY" | "NEO" | "DONKI" | "SYSTEM";
   title: string;
   detail: string;
   level: ThreatLevel;
@@ -83,6 +106,8 @@ export interface UniverseSnapshot {
   epic: EpicFrame | null;
   weather: SpaceWeatherEvent[];
   starlink: StarlinkSummary;
+  cad: CadApproach[];
+  sentry: SentryObject[];
   threats: ThreatItem[];
   loadedBy: string;
 }

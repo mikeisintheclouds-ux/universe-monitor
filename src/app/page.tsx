@@ -17,6 +17,8 @@ export default async function Page() {
         weather={snap.weather}
         starlink={snap.starlink}
         epic={snap.epic}
+        cad={snap.cad}
+        sentry={snap.sentry}
         generatedAt={snap.generatedAt}
       />
     </div>

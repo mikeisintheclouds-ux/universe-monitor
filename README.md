@@ -1,31 +1,36 @@
 # Universe Monitor
 
-**Cosmic ops dashboard.** Zoom from the observable universe → Milky Way → solar system → Earth orbit → your pin on the ground.
+**Cosmic ops dashboard** — zoom from the observable universe down to a pin on Earth, backed by real NASA and orbital data.
 
-Live feeds:
+> Portfolio flagship: systems thinking + live scientific APIs + intentional UI.
 
-| Feed | Source | What you get |
+## Live capabilities
+
+| Feed | Source | What it does |
 |------|--------|----------------|
 | **EPIC** | NASA DSCOVR | Real satellite camera — full-disk Earth from L1 |
-| **NeoWs** | NASA | Near-Earth objects / meteors (size, miss, velocity, PHA) |
+| **GIBS** | NASA WMTS | Global true-color / thermal map tiles (Leaflet-ready) |
+| **NeoWs** | NASA | Near-Earth objects & close approaches |
 | **DONKI** | NASA | Space weather notifications |
-| **ISS** | wheretheiss.at | Live lat/lon/altitude/speed |
-| **Starlink** | Celestrak TLE | Constellation catalog count + sample names |
-| **Alignment** | Local ephemeris | Planetary ecliptic clustering score |
+| **ISS** | Live telemetry | Position, altitude, velocity |
+| **TLE catalogs** | Celestrak | Starlink / stations / weather groups + SGP4-ready parse |
+| **Alignment** | Local ephemeris | Planetary ecliptic clustering |
 
-**Starlink note:** No public optical camera API exists. We track the swarm via TLE orbital elements only.
-
-Loaded by **AFRO SATOSHI · Crypt Keeper uplink** — parent link to World Monitor.
+**Starlink:** public data is **TLE positions only** — no optical camera API.
 
 ## Zoom stack
 
-| Level | View |
-|-------|------|
-| Universe | Observable-universe scale |
-| Galaxy | Milky Way / Orion Arm / Sol |
-| Solar | Planets + alignment score |
-| Earth | Globe + ISS + observer |
-| Surface | Coordinate lock → Google Maps |
+`Universe` → `Galaxy` → `Solar` → `Earth` → `Surface`
+
+Observer defaults to York, SC; Surface hands off to Google Maps.
+
+## Stack
+
+- Next.js 15 App Router + TypeScript
+- NASA Open APIs (NeoWs, EPIC, DONKI)
+- GIBS WMTS helpers (`src/lib/gibs.ts`)
+- Celestrak TLE parser (`src/lib/tle.ts`)
+- Pure SVG stages (MapLibre + GIBS planned for Earth)
 
 ## Run
 
@@ -33,21 +38,19 @@ Loaded by **AFRO SATOSHI · Crypt Keeper uplink** — parent link to World Monit
 npm install && npm run dev
 ```
 
-Optional free key from [api.nasa.gov](https://api.nasa.gov/):
-
 ```bash
-NASA_API_KEY=your_key npm run dev
+NASA_API_KEY=your_key npm run dev   # free key: api.nasa.gov
 ```
 
 `DEMO_KEY` works with rate limits.
 
-## Stack
+## Architecture notes
 
-Next.js 15 · TypeScript · NASA Open APIs · Celestrak · pure SVG stages
+See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for GIBS tile URLs, Celestrak GROUP list, TLE line layout, and the Earth-zoom map plan.
 
 ## Topics
 
-`nextjs` `typescript` `nasa` `epic` `starlink` `astronomy` `dashboard` `space` `neo` `iss` `portfolio`
+`nextjs` `typescript` `nasa` `gibs` `epic` `starlink` `tle` `celestrak` `astronomy` `dashboard` `space` `neo` `iss` `portfolio`
 
 ## License
 

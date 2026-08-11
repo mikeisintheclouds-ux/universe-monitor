@@ -44,37 +44,26 @@ export default async function Page() {
         </div>
       </div>
 
-      {snap.epic && (
-        <section className="panel" style={{ marginBottom: "1rem" }}>
-          <h2>DSCOVR EPIC \u00b7 satellite camera \u00b7 Earth from L1</h2>
-          <div
-            style={{
-              display: "grid",
-              gap: "1rem",
-              gridTemplateColumns: "minmax(0, 280px) minmax(0, 1fr)",
-            }}
-          >
+      <section className="panel" style={{ marginBottom: "1rem" }}>
+        <h2>DSCOVR EPIC \u00b7 Earth Polychromatic Imaging Camera</h2>
+        {snap.epic ? (
+          <div className="epic-hero">
             <div>
-              <img
-                src={snap.epic.url}
-                alt={snap.epic.caption}
-                style={{
-                  width: "100%",
-                  borderRadius: 12,
-                  border: "1px solid rgba(99,140,255,0.25)",
-                }}
-              />
+              <img src={snap.epic.url} alt={snap.epic.caption} loading="lazy" />
             </div>
             <div>
               <div className="name" style={{ marginBottom: "0.5rem" }}>
                 {snap.epic.caption}
               </div>
               <div className="meta">
-                Frame {snap.epic.image}
+                Instrument: EPIC aboard DSCOVR (Earth\u2013Sun L1)
                 <br />
-                {snap.epic.date}
+                Frame ID: {snap.epic.image}
                 <br />
-                Centroid {snap.epic.lat.toFixed(2)}\u00b0, {snap.epic.lon.toFixed(2)}\u00b0
+                Observation time: {snap.epic.date}
+                <br />
+                Earth centroid: {snap.epic.lat.toFixed(2)}\u00b0,{" "}
+                {snap.epic.lon.toFixed(2)}\u00b0
               </div>
               <p
                 style={{
@@ -84,13 +73,24 @@ export default async function Page() {
                   lineHeight: 1.45,
                 }}
               >
-                Real camera on DSCOVR at the Earth\u2013Sun Lagrange point \u2014 full-disk
-                Earth, not a render. Parent signal for the World Monitor chain.
+                Full-disk natural-color imagery from approximately 1.5 million km
+                sunward of Earth. Source: NASA EPIC API (api.nasa.gov /
+                epic.gsfc.nasa.gov). Complements GIBS surface tiles with a
+                deep-space viewpoint.
               </p>
+              <div className="row" style={{ marginTop: "0.75rem" }}>
+                <div className="meta">Data product: natural color JPEG archive</div>
+                <span className="badge ok">LIVE FEED</span>
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        ) : (
+          <p style={{ color: "#7b8bb0", fontSize: "0.85rem" }}>
+            EPIC imagery unavailable (API limit or temporary outage). NeoWs, ISS,
+            and GIBS remain active.
+          </p>
+        )}
+      </section>
 
       <div className="grid-panels">
         <section className="panel">
@@ -146,10 +146,7 @@ export default async function Page() {
           </div>
           {snap.starlink.sampleNames.map((n) => (
             <div className="row" key={n}>
-              <div
-                className="name"
-                style={{ fontWeight: 500, fontSize: "0.82rem" }}
-              >
+              <div className="name" style={{ fontWeight: 500, fontSize: "0.82rem" }}>
                 {n}
               </div>
             </div>
@@ -163,7 +160,7 @@ export default async function Page() {
             }}
           >
             Starlink has no public optical camera API. Public data is orbital
-            elements (TLE) \u2014 we track the swarm, not customer downlinks.
+            elements (TLE) \u2014 positions only.
           </p>
         </section>
 
@@ -214,11 +211,9 @@ export default async function Page() {
       </section>
 
       <footer className="footer">
-        Universe Monitor \u00b7 parent link to World Monitor
+        Universe Monitor \u00b7 operational space situational awareness
         <br />
-        Feeds: NASA NeoWs \u00b7 EPIC \u00b7 DONKI \u00b7 ISS \u00b7 Celestrak Starlink
-        <br />
-        <span style={{ color: "#a78bfa" }}>{snap.loadedBy}</span>
+        Feeds: NASA NeoWs \u00b7 EPIC \u00b7 DONKI \u00b7 GIBS \u00b7 ISS \u00b7 Celestrak
         <br />
         Snapshot {new Date(snap.generatedAt).toLocaleString()} \u00b7{" "}
         <a href="https://github.com/mikeisintheclouds-ux/universe-monitor">

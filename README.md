@@ -1,57 +1,64 @@
 # Universe Monitor
 
-**Cosmic ops dashboard** — zoom from the observable universe down to a pin on Earth, backed by real NASA and orbital data.
+Operational situational-awareness dashboard for near-Earth space and Earth observation.
 
-> Portfolio flagship: systems thinking + live scientific APIs + intentional UI.
+Integrates NASA scientific data products and open orbital catalogs into a single scale-navigation interface—from deep-space context through solar-system geometry to surface coordinates.
 
-## Live capabilities
+## Capabilities
 
-| Feed | Source | What it does |
-|------|--------|----------------|
-| **EPIC** | NASA DSCOVR | Real satellite camera — full-disk Earth from L1 |
-| **GIBS** | NASA WMTS | Global true-color / thermal map tiles (Leaflet-ready) |
-| **NeoWs** | NASA | Near-Earth objects & close approaches |
-| **DONKI** | NASA | Space weather notifications |
-| **ISS** | Live telemetry | Position, altitude, velocity |
-| **TLE catalogs** | Celestrak | Starlink / stations / weather groups + SGP4-ready parse |
-| **Alignment** | Local ephemeris | Planetary ecliptic clustering |
+| Product | Provider | Function |
+|---------|----------|----------|
+| **EPIC** | NASA / DSCOVR | Full-disk Earth imagery from Sun–Earth L1 |
+| **GIBS WMTS** | NASA ESDIS | Global true-color and thermal map tiles (MapLibre) |
+| **NeoWs** | NASA JPL | Near-Earth object close-approach feed |
+| **DONKI** | NASA CCMC | Space-weather notifications |
+| **ISS telemetry** | Open ISS API | Real-time position, altitude, and velocity |
+| **TLE catalogs** | Celestrak | Starlink, stations, and related orbital groups |
+| **Planetary alignment** | Local ephemeris | Ecliptic longitude clustering score |
 
-**Starlink:** public data is **TLE positions only** — no optical camera API.
+Starlink data is limited to published two-line element sets. No public optical payload is available for that constellation.
 
-## Zoom stack
+## Interface
 
-`Universe` → `Galaxy` → `Solar` → `Earth` → `Surface`
+Five discrete zoom levels:
 
-Observer defaults to York, SC; Surface hands off to Google Maps.
+1. **Universe** — observable-universe scale frame  
+2. **Galaxy** — Milky Way / local arm context  
+3. **Solar** — planetary positions and alignment metric  
+4. **Earth** — MapLibre map with NASA GIBS true-color base, ISS marker, and observer lock  
+5. **Surface** — coordinate handoff to external mapping services  
 
-## Stack
+Default observer location: York, South Carolina (configurable in `src/lib/data.ts`).
 
-- Next.js 15 App Router + TypeScript
-- NASA Open APIs (NeoWs, EPIC, DONKI)
-- GIBS WMTS helpers (`src/lib/gibs.ts`)
-- Celestrak TLE parser (`src/lib/tle.ts`)
-- Pure SVG stages (MapLibre + GIBS planned for Earth)
+## Technology
 
-## Run
+- Next.js 15 (App Router) and TypeScript  
+- MapLibre GL for the Earth stage  
+- NASA Open APIs (NeoWs, EPIC, DONKI)  
+- NASA GIBS Web Map Tile Service  
+- Celestrak General Perturbations (GP) / TLE distribution  
+
+Integration notes: [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)
+
+## Getting started
 
 ```bash
-npm install && npm run dev
+npm install
+npm run dev
 ```
+
+Optional NASA developer key (higher rate limits):
 
 ```bash
-NASA_API_KEY=your_key npm run dev   # free key: api.nasa.gov
+NASA_API_KEY=your_key npm run dev
 ```
 
-`DEMO_KEY` works with rate limits.
+A free key is available at [api.nasa.gov](https://api.nasa.gov/). The shared `DEMO_KEY` is sufficient for local evaluation.
 
-## Architecture notes
+## Repository purpose
 
-See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for GIBS tile URLs, Celestrak GROUP list, TLE line layout, and the Earth-zoom map plan.
-
-## Topics
-
-`nextjs` `typescript` `nasa` `gibs` `epic` `starlink` `tle` `celestrak` `astronomy` `dashboard` `space` `neo` `iss` `portfolio`
+This project demonstrates production-oriented integration of public scientific APIs, client-side geospatial rendering, and structured TypeScript architecture suitable for operations and portfolio review.
 
 ## License
 
-MIT © Mike O'Connor
+MIT License. Copyright (c) 2026 Mike O'Connor.

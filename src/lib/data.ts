@@ -1,6 +1,6 @@
 /**
  * Universe Monitor data plane
- * NASA NeoWs · EPIC (DSCOVR camera) · DONKI · ISS · Starlink TLE catalog
+ * NASA NeoWs · EPIC · DONKI · ISS · Celestrak TLE
  */
 
 import type {
@@ -12,6 +12,7 @@ import type {
   UniverseSnapshot,
 } from "./types";
 import { planetStates } from "./astro";
+import { buildThreatBoard } from "./threat";
 
 const NASA_KEY = process.env.NASA_API_KEY || "DEMO_KEY";
 
@@ -70,7 +71,21 @@ export async function fetchNeos(): Promise<NeoObject[]> {
   }
 }
 
-/** Real satellite camera: DSCOVR EPIC full-disk Earth from L1 */
+function epicUrlFromMeta(latest: any): EpicFrame {
+  const date = String(latest.date ?? "").slice(0, 10);
+  const [y, m, d] = date.split("-");
+  const image = latest.image as string;
+  const url = `https://epic.gsfc.nasa.gov/archive/natural/${y}/${m}/${d}/jpg/${image}.jpg`;
+  return {
+    image,
+    date: latest.date,
+    caption: latest.caption ?? "DSCOVR EPIC Earth",
+    url,
+    lat: latest.centroid_coordinates?.lat ?? 0,
+    lon: latest.centroid_coordinates?.lon ?? 0,
+  };
+}
+
 export async function fetchEpic(): Promise<EpicFrame | null> {
   try {
     const metaRes = await fetch(
@@ -80,19 +95,22 @@ export async function fetchEpic(): Promise<EpicFrame | null> {
     if (!metaRes.ok) throw new Error(`EPIC ${metaRes.status}`);
     const frames = await metaRes.json();
     if (!Array.isArray(frames) || frames.length === 0) return null;
-    const latest = frames[frames.length - 1];
-    const date = String(latest.date ?? "").slice(0, 10);
-    const [y, m, d] = date.split("-");
-    const image = latest.image as string;
-    const url = `https://epic.gsfc.nasa.gov/archive/natural/${y}/${m}/${d}/jpg/${image}.jpg`;
-    return {
-      image,
-      date: latest.date,
-      caption: latest.caption ?? "DSCOVR EPIC Earth",
-      url,
-      lat: latest.centroid_coordinates?.lat ?? 0,
-      lon: latest.centroid_coordinates?.lon ?? 0,
-    };
+    return epicUrlFromMeta(frames[frames.length - 1]);
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchEpicByDate(dateIso: string): Promise<EpicFrame | null> {
+  try {
+    const metaRes = await fetch(
+      `https://api.nasa.gov/EPIC/api/natural/date/${dateIso}?api_key=${NASA_KEY}`,
+      { next: { revalidate: 86400 } }
+    );
+    if (!metaRes.ok) throw new Error(`EPIC date ${metaRes.status}`);
+    const frames = await metaRes.json();
+    if (!Array.isArray(frames) || frames.length === 0) return null;
+    return epicUrlFromMeta(frames[Math.floor(frames.length / 2)]);
   } catch {
     return null;
   }
@@ -126,9 +144,7 @@ export async function fetchIss(): Promise<IssState | null> {
 export async function fetchDonki(): Promise<SpaceWeatherEvent[]> {
   try {
     const end = todayIso();
-    const start = new Date(Date.now() - 3 * 86400000)
-      .toISOString()
-      .slice(0, 10);
+    const start = new Date(Date.now() - 3 * 86400000).toISOString().slice(0, 10);
     const url = `https://api.nasa.gov/DONKI/notifications?startDate=${start}&endDate=${end}&type=all&api_key=${NASA_KEY}`;
     const res = await fetch(url, { next: { revalidate: 1800 } });
     if (!res.ok) throw new Error(`DONKI ${res.status}`);
@@ -145,13 +161,28 @@ export async function fetchDonki(): Promise<SpaceWeatherEvent[]> {
   }
 }
 
-/** Starlink: public TLE catalog (positions), not cameras. */
+function parseFirstTle(text: string) {
+  const lines = text.trim().split(/\r?\n/).map((l) => l.trim());
+  for (let i = 0; i + 2 < lines.length; i++) {
+    if (lines[i + 1]?.startsWith("1 ") && lines[i + 2]?.startsWith("2 ")) {
+      return { name: lines[i], line1: lines[i + 1], line2: lines[i + 2] };
+    }
+  }
+  return null;
+}
+
 export async function fetchStarlink(): Promise<StarlinkSummary> {
   try {
-    const res = await fetch(
-      "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle",
-      { next: { revalidate: 3600 } }
-    );
+    const [res, issRes] = await Promise.all([
+      fetch(
+        "https://celestrak.org/NORAD/elements/gp.php?GROUP=starlink&FORMAT=tle",
+        { next: { revalidate: 3600 } }
+      ),
+      fetch(
+        "https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle",
+        { next: { revalidate: 1800 } }
+      ),
+    ]);
     if (!res.ok) throw new Error("celestrak");
     const text = await res.text();
     const lines = text.trim().split(/\r?\n/);
@@ -160,16 +191,21 @@ export async function fetchStarlink(): Promise<StarlinkSummary> {
       const name = lines[i]?.trim();
       if (name) names.push(name);
     }
+    const issText = issRes.ok ? await issRes.text() : "";
     return {
       catalogCount: names.length,
       sampleNames: names.slice(0, 8),
-      source: "Celestrak GROUP=starlink",
+      source: "Celestrak GROUP=starlink + CATNR 25544",
+      sampleTle: parseFirstTle(text),
+      issTle: issText ? parseFirstTle(issText) : null,
     };
   } catch {
     return {
       catalogCount: 0,
       sampleNames: [],
       source: "Celestrak (unavailable)",
+      sampleTle: null,
+      issTle: null,
     };
   }
 }
@@ -200,7 +236,8 @@ export async function getUniverseSnapshot(): Promise<UniverseSnapshot> {
     epic,
     weather,
     starlink,
-    loadedBy: "AFRO SATOSHI \u00b7 Crypt Keeper uplink",
+    threats: buildThreatBoard(neos, weather),
+    loadedBy: "Universe Monitor",
   };
 }
 
